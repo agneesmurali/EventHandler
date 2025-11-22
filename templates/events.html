@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Events - Event Scheduling System{% endblock %}
+
+{% block content %}
+
+<style>
+    /* Page Header */
+    .page-header {
+        background: linear-gradient(135deg, #4f8cff, #00eaff);
+        padding: 25px;
+        border-radius: 14px;
+        color: white;
+        box-shadow: 0 8px 18px rgba(0,0,0,0.15);
+        margin-bottom: 30px;
+        animation: fadeIn 0.6s ease-in-out;
+    }
+
+    /* Table Styling */
+    .custom-table {
+        border-radius: 12px;
+        overflow: hidden;
+        animation: slideUp 0.5s ease-out;
+    }
+
+    .custom-table thead {
+        background: #1d1f27;
+        color: #fff;
+    }
+
+    .custom-table tbody tr:hover {
+        background: #eef7ff !important;
+        transition: 0.2s ease-in-out;
+    }
+
+    .badge-custom {
+        background: #4f8cff;
+        color: white;
+        padding: 6px 10px;
+        border-radius: 6px;
+    }
+
+    /* Buttons */
+    .btn-rounded {
+        border-radius: 25px;
+        font-weight: 600;
+        padding: 6px 16px;
+        font-size: 14px;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-15px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(25px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+
+<!-- Page Header -->
+<div class="page-header d-flex justify-content-between align-items-center">
+    <h2 class="mb-0">
+        <i class="bi bi-calendar-event"></i> Events
+    </h2>
+
+    <a href="{{ url_for('add_event') }}" class="btn btn-light btn-rounded">
+        <i class="bi bi-plus-circle"></i> Add Event
+    </a>
+</div>
+
+
+{% if events %}
+<div class="table-responsive custom-table">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Description</th>
+                <th>Resources</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for event in events %}
+            <tr>
+                <td><strong>{{ event.title }}</strong></td>
+
+                <td>
+                    {{ event.start_time.strftime('%Y-%m-%d %I:%M %p') 
+                       if event.start_time else '—' }}
+                </td>
+
+                <td>
+                    {{ event.end_time.strftime('%Y-%m-%d %I:%M %p') 
+                       if event.end_time else '—' }}
+                </td>
+
+                <td>
+                    {{ event.description[:50] }}
+                    {% if event.description and event.description|length > 50 %}
+                        ...
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% for allocation in event.allocations %}
+                        <span class="badge badge-custom">{{ allocation.resource.resource_name }}</span>
+                    {% else %}
+                        <span class="text-muted">None</span>
+                    {% endfor %}
+                </td>
+
+                <td>
+                    <a href="{{ url_for('edit_event', event_id=event.event_id) }}" 
+                       class="btn btn-warning btn-sm btn-rounded">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+
+                    <form method="POST" action="{{ url_for('delete_event', event_id=event.event_id) }}" 
+                          style="display:inline;">
+                        <button type="submit" class="btn btn-danger btn-sm btn-rounded"
+                                onclick="return confirm('Are you sure you want to delete this event?')">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+
+    </table>
+</div>
+
+{% else %}
+<div class="alert alert-info mt-4">
+    <i class="bi bi-info-circle"></i> No events found.
+    <a href="{{ url_for('add_event') }}" class="fw-bold">Add your first event</a>
+</div>
+{% endif %}
+
+{% endblock %}

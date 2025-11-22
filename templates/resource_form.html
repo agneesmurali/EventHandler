@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - Event Scheduling System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="bi bi-box"></i> {{ title }}</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.resource_name.label(class="form-label") }}
+                        {{ form.resource_name(class="form-control" + (" is-invalid" if form.resource_name.errors else "")) }}
+                        {% if form.resource_name.errors %}
+                            <div class="invalid-feedback">
+                                {{ form.resource_name.errors[0] }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.resource_type.label(class="form-label") }}
+                        {{ form.resource_type(class="form-select" + (" is-invalid" if form.resource_type.errors else "")) }}
+                        {% if form.resource_type.errors %}
+                            <div class="invalid-feedback">
+                                {{ form.resource_type.errors[0] }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('resources') }}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Save Resource
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
