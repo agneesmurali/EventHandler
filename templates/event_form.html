@@ -26,7 +26,10 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             {{ form.start_time.label(class="form-label") }}
-                            {{ form.start_time(class="form-control" + (" is-invalid" if form.start_time.errors else "")) }}
+                            {{ form.start_time(
+                                class="form-control datetime-picker" + (" is-invalid" if form.start_time.errors else ""),
+                                min=current_time
+                            ) }}
                             {% if form.start_time.errors %}
                                 <div class="invalid-feedback">
                                     {{ form.start_time.errors[0] }}
@@ -36,7 +39,10 @@
                         
                         <div class="col-md-6 mb-3">
                             {{ form.end_time.label(class="form-label") }}
-                            {{ form.end_time(class="form-control" + (" is-invalid" if form.end_time.errors else "")) }}
+                            {{ form.end_time(
+                                class="form-control datetime-picker" + (" is-invalid" if form.end_time.errors else ""),
+                                min=current_time
+                            ) }}
                             {% if form.end_time.errors %}
                                 <div class="invalid-feedback">
                                     {{ form.end_time.errors[0] }}
@@ -63,4 +69,14 @@
         </div>
     </div>
 </div>
+
+<!-- If using Flatpickr -->
+<script>
+    flatpickr(".datetime-picker", {
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+        minDate: "today"   // block past dates
+    });
+</script>
+
 {% endblock %}

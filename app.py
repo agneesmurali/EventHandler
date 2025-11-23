@@ -223,11 +223,27 @@ def events():
 def add_event():
     form = EventForm()
 
+    # Pass current time to template for min="..."
+    current_time = datetime.now().strftime("%Y-%m-%dT%H:%M")
+
     if form.validate_on_submit():
+
+        # 1. Prevent selecting past start time
+        if form.start_time.data < datetime.now():
+            flash("Start time cannot be in the past!", "danger")
+            return redirect(url_for("add_event"))
+
+        # 2. End time must be after start time
+        if form.end_time.data <= form.start_time.data:
+            flash("End time must be after the start time!", "danger")
+            return redirect(url_for("add_event"))
+
+        # 3. Save event
         conn = get_db()
         cur = conn.cursor()
 
-        sql = "INSERT INTO events(title, start_time, end_time, description) VALUES (%s, %s, %s, %s)"
+        sql = """INSERT INTO events(title, start_time, end_time, description)
+                 VALUES (%s, %s, %s, %s)"""
 
         cur.execute(sql, (
             form.title.data,
@@ -235,15 +251,20 @@ def add_event():
             form.end_time.data,
             form.description.data
         ))
+
         conn.commit()
         conn.close()
 
         flash("Event created!", "success")
         return redirect(url_for("events"))
 
-    return render_template("event_form.html", form=form, title="Add Event")
-
-
+    # Render page
+    return render_template(
+        "event_form.html",
+        form=form,
+        title="Add Event",
+        current_time=current_time
+    )
 
 # EDIT EVENT
 @app.route('/events/edit/<int:event_id>', methods=['GET', 'POST'])
@@ -252,6 +273,7 @@ def edit_event(event_id):
     conn = get_db()
     cur = conn.cursor()
 
+    # Fetch existing event
     cur.execute("SELECT * FROM events WHERE event_id=%s", (event_id,))
     event = cur.fetchone()
 
@@ -259,28 +281,52 @@ def edit_event(event_id):
         flash("Event not found!", "danger")
         return redirect(url_for("events"))
 
+    # Pre-fill form with current event data
     form = EventForm(data=event)
 
     if form.validate_on_submit():
-        cur.execute("SELECT resource_id FROM event_resource_allocations WHERE event_id=%s", (event_id,))
-        allocated_resources = [row["resource_id"] for row in cur.fetchall()]
+
+        if form.start_time.data < datetime.now():
+            flash("Start time cannot be in the past!", "danger")
+            return redirect(url_for("edit_event", event_id=event_id))
+
+        if form.end_time.data <= form.start_time.data:
+            flash("End time must be after the start time!", "danger")
+            return redirect(url_for("edit_event", event_id=event_id))
+        cur.execute("""
+            SELECT r.resource_id, r.resource_name
+            FROM event_resource_allocations a
+            JOIN resources r ON a.resource_id = r.resource_id
+            WHERE a.event_id=%s
+        """, (event_id,))
+        allocated_resources = cur.fetchall()
 
         conflicts = []
-        for resource_id in allocated_resources:
-            has_conflict, conflicting_event = check_resource_conflict(
+        for res in allocated_resources:
+             resource_id = res["resource_id"]
+             resource_name = res["resource_name"]
+        
+             has_conflict, conflicting_event = check_resource_conflict(
                 resource_id, form.start_time.data, form.end_time.data, event_id
             )
-            if has_conflict:
+             if has_conflict:
+                start_fmt = conflicting_event["start_time"].strftime("%Y-%m-%d %I:%M %p")
+                end_fmt = conflicting_event["end_time"].strftime("%Y-%m-%d %I:%M %p")
                 conflicts.append(
-                    f"{resource_id} is allocated to '{conflicting_event['title']}'"
+                    f"Resource {resource_name} is allocated to '{conflicting_event['title']}' "
+                    f"({start_fmt} - {end_fmt})"
                 )
 
+        # If conflicts exist → show them
         if conflicts:
             for c in conflicts:
                 flash(c, "danger")
+
         else:
+            # 4️⃣ Save update
             sql = """
-                UPDATE events SET title=%s, start_time=%s, end_time=%s, description=%s
+                UPDATE events 
+                SET title=%s, start_time=%s, end_time=%s, description=%s
                 WHERE event_id=%s
             """
             cur.execute(sql, (
@@ -291,27 +337,42 @@ def edit_event(event_id):
                 event_id
             ))
             conn.commit()
-            flash("Event updated!", "success")
             conn.close()
+
+            flash("Event updated successfully!", "success")
             return redirect(url_for("events"))
 
     conn.close()
-    return render_template("event_form.html", form=form, title="Edit Event", event=event)
+
+    # Pass current_time for min validation in the form
+    current_time = datetime.now().strftime("%Y-%m-%dT%H:%M")
+
+    return render_template(
+        "event_form.html",
+        form=form,
+        title="Edit Event",
+        event=event,
+        current_time=current_time
+    )
 
 
-
-# DELETE EVENT
 
 @app.route('/events/delete/<int:event_id>', methods=['POST'])
 @login_required
 def delete_event(event_id):
     conn = get_db()
     cur = conn.cursor()
+
+    # Delete all allocations linked to this event
+    cur.execute("DELETE FROM event_resource_allocations WHERE event_id=%s", (event_id,))
+
+    # Delete the event
     cur.execute("DELETE FROM events WHERE event_id=%s", (event_id,))
+    
     conn.commit()
     conn.close()
 
-    flash("Event deleted!", "success")
+    flash("Event deleted and allocations updated!", "success")
     return redirect(url_for("events"))
 
 
@@ -491,13 +552,19 @@ def add_allocation():
 
     form = AllocationForm()
 
+    # FORMAT event list dropdown
     cur.execute("SELECT event_id, title, start_time, end_time FROM events")
     events = cur.fetchall()
     form.event_id.choices = [
-        (e["event_id"], f"{e['title']} ({e['start_time']} - {e['end_time']})")
+        (
+            e["event_id"],
+            f"{e['title']} ({e['start_time'].strftime('%Y-%m-%d %I:%M %p')} - "
+            f"{e['end_time'].strftime('%Y-%m-%d %I:%M %p')})"
+        )
         for e in events
     ]
 
+    # RESOURCE LIST
     cur.execute("SELECT resource_id, resource_name, resource_type FROM resources")
     resources = cur.fetchall()
     form.resource_ids.choices = [
@@ -526,9 +593,12 @@ def add_allocation():
             conflict_event = cur.fetchone()
 
             if conflict_event:
+                start_fmt = conflict_event["start_time"].strftime("%Y-%m-%d %I:%M %p")
+                end_fmt = conflict_event["end_time"].strftime("%Y-%m-%d %I:%M %p")
+
                 conflicts.append(
                     f"Resource already allocated to '{conflict_event['title']}' "
-                    f"({conflict_event['start_time']} - {conflict_event['end_time']})"
+                    f"({start_fmt} - {end_fmt})"
                 )
 
         if conflicts:
@@ -550,7 +620,6 @@ def add_allocation():
 
     conn.close()
     return render_template("allocation_form.html", form=form, title="Allocate Resources")
-
 
 
 # DELETE ALLOCATION

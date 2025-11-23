@@ -9,7 +9,7 @@ class EventForm(FlaskForm):
     start_time = DateTimeLocalField('Start Time', format='%Y-%m-%dT%H:%M', validators=[DataRequired()])
     end_time = DateTimeLocalField('End Time', format='%Y-%m-%dT%H:%M', validators=[DataRequired()])
     description = TextAreaField('Description')
-    
+        
     def validate_end_time(self, field):
         if field.data and self.start_time.data:
             if field.data <= self.start_time.data:
