@@ -49,17 +49,35 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
 
-                    {% if session.get('user_id') %}
-                        <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}"><i class="bi bi-house"></i> Home</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ url_for('events') }}"><i class="bi bi-calendar"></i> Events</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ url_for('resources') }}"><i class="bi bi-box"></i> Resources</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ url_for('allocations') }}"><i class="bi bi-link-45deg"></i> Allocations</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ url_for('utilization_report') }}"><i class="bi bi-graph-up"></i> Reports</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">
+                            <i class="bi bi-house"></i> Home
+                        </a>
+                    </li>
 
-                    {% else %}
-                        <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}"><i class="bi bi-person"></i> Login</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ url_for('signup') }}"><i class="bi bi-person-plus"></i> Sign Up</a></li>
-                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('events') }}">
+                            <i class="bi bi-calendar"></i> Events
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('resources') }}">
+                            <i class="bi bi-box"></i> Resources
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('allocations') }}">
+                            <i class="bi bi-link-45deg"></i> Allocations
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('utilization_report') }}">
+                            <i class="bi bi-graph-up"></i> Reports
+                        </a>
+                    </li>
 
                 </ul>
             </div>

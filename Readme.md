@@ -61,7 +61,7 @@ python app.py
 
 Click the thumbnail below to watch the screen recording:
 
-[![Watch the video](images/home.png)](https://drive.google.com/file/d/1Qa28WZKW6ZDHmhPJGGEwdHnUVprVqS2f/view?usp=drive_link )
+[![Watch the video](images/home.png)](https://drive.google.com/file/d/1TyYpjEVLEiuY-lxHeJYrDfwKpzbluFix/view?usp=drive_link)
 
 ## Author
 - Developed By Agnees Murali M
