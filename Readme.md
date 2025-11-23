@@ -3,6 +3,9 @@
 A complete Flask-based web application for managing events, resources, allocations, and preventing double bookings.
 
 ## Screenshots
+### Home
+![Events](images/home.png)
+
 ### Events
 ![Events](images/events.png)
 
