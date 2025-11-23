@@ -2,21 +2,9 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 import pymysql
 from forms import EventForm, ResourceForm, AllocationForm, UtilizationReportForm
 from datetime import datetime, timedelta
-from werkzeug.security import generate_password_hash, check_password_hash
-from functools import wraps
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dev-secret-key'
-
-
-# LOGIN REQUIRED DECORATOR
-def login_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        if "user_id" not in session:
-            return redirect(url_for("login"))
-        return f(*args, **kwargs)
-    return decorated
 
 
 
@@ -32,71 +20,6 @@ def get_db():
     )
 
 
-# AUTH:SIGNUP
-
-@app.route("/signup", methods=["GET", "POST"])
-def signup():
-    if request.method == "POST":
-        username = request.form["username"]
-        email = request.form["email"]
-        password = request.form["password"]
-        confirm_password = request.form["confirm_password"]
-
-       
-        if password != confirm_password:
-            flash("Passwords do not match!", "danger")
-            return redirect(url_for("signup"))
-
-        conn = get_db()
-        cur = conn.cursor()
-
-        try:
-            hashed = generate_password_hash(password)
-            cur.execute("INSERT INTO users (username, email, password) VALUES (%s, %s, %s)",
-                        (username, email, hashed))
-            conn.commit()
-
-            flash("Account created successfully!", "success")
-            return redirect(url_for("login"))
-        
-        except:
-            flash("Email already exists!", "danger")
-
-        finally:
-            conn.close()
-
-    return render_template("signup.html")
-
-# AUTH: LOGIN
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    if request.method == "POST":
-        email = request.form["email"]
-        password = request.form["password"]
-
-        conn = get_db()
-        cur = conn.cursor()
-
-        cur.execute("SELECT * FROM users WHERE email=%s", (email,))
-        user = cur.fetchone()
-        conn.close()
-
-        if user and check_password_hash(user["password"], password):
-            session["user_id"] = user["id"]
-            session["email"] = user["email"]
-            return redirect(url_for("index"))
-        else:
-            flash("Invalid Email or Password!", "danger")
-
-    return render_template("login.html")
-
-
-# AUTH: LOGOUT
-
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect(url_for("login"))
 
 
 # CHECK RESOURCE CONFLICT
@@ -128,7 +51,6 @@ def check_resource_conflict(resource_id, start_time, end_time, exclude_event_id=
 # HOME PAGE
 
 @app.route('/')
-@login_required
 def index():
     conn = get_db()
     cur = conn.cursor()
@@ -182,7 +104,6 @@ def index():
 
 # EVENTS LIST
 @app.route('/events')
-@login_required
 def events():
     conn = get_db()
     cur = conn.cursor()
@@ -219,7 +140,6 @@ def events():
 
 # ADD EVENT
 @app.route('/events/add', methods=['GET', 'POST'])
-@login_required
 def add_event():
     form = EventForm()
 
@@ -268,7 +188,6 @@ def add_event():
 
 # EDIT EVENT
 @app.route('/events/edit/<int:event_id>', methods=['GET', 'POST'])
-@login_required
 def edit_event(event_id):
     conn = get_db()
     cur = conn.cursor()
@@ -358,7 +277,6 @@ def edit_event(event_id):
 
 
 @app.route('/events/delete/<int:event_id>', methods=['POST'])
-@login_required
 def delete_event(event_id):
     conn = get_db()
     cur = conn.cursor()
@@ -379,7 +297,6 @@ def delete_event(event_id):
 
 # RESOURCES LIST
 @app.route('/resources')
-@login_required
 def resources():
     conn = get_db()
     cur = conn.cursor()
@@ -412,7 +329,6 @@ def resources():
 # ADD RESOURCE
 
 @app.route('/resources/add', methods=['GET', 'POST'])
-@login_required
 def add_resource():
     form = ResourceForm()
 
@@ -437,7 +353,6 @@ def add_resource():
 # EDIT RESOURCE
 
 @app.route('/resources/edit/<int:resource_id>', methods=['GET', 'POST'])
-@login_required
 def edit_resource(resource_id):
     conn = get_db()
     cur = conn.cursor()
@@ -476,7 +391,6 @@ def edit_resource(resource_id):
 # DELETE RESOURCE
 
 @app.route('/resources/delete/<int:resource_id>', methods=['POST'])
-@login_required
 def delete_resource(resource_id):
     conn = get_db()
     cur = conn.cursor()
@@ -505,7 +419,6 @@ def delete_resource(resource_id):
 # ALLOCATIONS LIST
 
 @app.route('/allocations')
-@login_required
 def allocations():
     conn = get_db()
     cur = conn.cursor()
@@ -545,7 +458,6 @@ def allocations():
 # ADD ALLOCATION
 
 @app.route('/allocations/add', methods=['GET', 'POST'])
-@login_required
 def add_allocation():
     conn = get_db()
     cur = conn.cursor()
@@ -625,7 +537,6 @@ def add_allocation():
 # DELETE ALLOCATION
 
 @app.route('/allocations/delete/<int:allocation_id>', methods=['POST'])
-@login_required
 def delete_allocation(allocation_id):
     conn = get_db()
     cur = conn.cursor()
@@ -642,7 +553,6 @@ def delete_allocation(allocation_id):
 # UTILIZATION REPORT
 
 @app.route('/reports/utilization', methods=['GET', 'POST'])
-@login_required
 def utilization_report():
     form = UtilizationReportForm()
     report_data = []

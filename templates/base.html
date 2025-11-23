@@ -56,12 +56,6 @@
                         <li class="nav-item"><a class="nav-link" href="{{ url_for('allocations') }}"><i class="bi bi-link-45deg"></i> Allocations</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ url_for('utilization_report') }}"><i class="bi bi-graph-up"></i> Reports</a></li>
 
-                        <li class="nav-item">
-                            <a class="nav-link text-warning fw-bold" href="{{ url_for('logout') }}">
-                                <i class="bi bi-box-arrow-right"></i> Logout
-                            </a>
-                        </li>
-
                     {% else %}
                         <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}"><i class="bi bi-person"></i> Login</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ url_for('signup') }}"><i class="bi bi-person-plus"></i> Sign Up</a></li>

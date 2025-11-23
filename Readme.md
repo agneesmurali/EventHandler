@@ -3,12 +3,6 @@
 A complete Flask-based web application for managing events, resources, allocations, and preventing double bookings.
 
 ## Screenshots
-
-### Login
-![Login](images/login.png)
-### Sign Up
-![Sign Up](images/signup.png)
-
 ### Events
 ![Events](images/events.png)
 
@@ -22,8 +16,6 @@ A complete Flask-based web application for managing events, resources, allocatio
 ![Reports](images/report.png)
 
 ## Features
-
-- User authentication (signup/login)
 - Event management
 - Resource management
 - Resource allocation
@@ -46,7 +38,6 @@ EventHandler/
 │── app.py
 │── forms.py
 │── templates/
-│── requirements.txt
 │── README.md
 └── images/
 ```
