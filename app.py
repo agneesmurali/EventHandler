@@ -278,7 +278,7 @@ def edit_event(event_id):
         current_time=current_time
     )
 
-
+#DELETE EVENT
 @app.route('/events/delete/<int:event_id>', methods=['POST'])
 def delete_event(event_id):
     conn = get_db()
@@ -296,7 +296,6 @@ def delete_event(event_id):
 
     flash("Event deleted and allocations updated!", "success")
     return redirect(url_for("events"))
-
 
 # RESOURCES LIST
 @app.route('/resources')
@@ -538,8 +537,6 @@ def add_allocation():
         conn.close()
 
     return render_template("allocation_form.html", form=form, title="Allocate Resources")
-
-
 # DELETE ALLOCATION
 @app.route('/allocations/delete/<int:allocation_id>', methods=['POST'])
 def delete_allocation(allocation_id):
